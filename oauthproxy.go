@@ -57,17 +57,18 @@ type allowedRoute struct {
 
 // OAuthProxy is the main authentication proxy
 type OAuthProxy struct {
-	CookieSeed     string
-	CookieName     string
-	CSRFCookieName string
-	CookieDomains  []string
-	CookiePath     string
-	CookieSecure   bool
-	CookieHTTPOnly bool
-	CookieExpire   time.Duration
-	CookieRefresh  time.Duration
-	CookieSameSite string
-	Validator      func(string) bool
+	CookieSeed         string
+	CookieRotationSeed string
+	CookieName         string
+	CSRFCookieName     string
+	CookieDomains      []string
+	CookiePath         string
+	CookieSecure       bool
+	CookieHTTPOnly     bool
+	CookieExpire       time.Duration
+	CookieRefresh      time.Duration
+	CookieSameSite     string
+	Validator          func(string) bool
 
 	RobotsPath        string
 	SignInPath        string
@@ -179,17 +180,18 @@ func NewOAuthProxy(opts *options.Options, validator func(string) bool) (*OAuthPr
 	}
 
 	return &OAuthProxy{
-		CookieName:     opts.Cookie.Name,
-		CSRFCookieName: fmt.Sprintf("%v_%v", opts.Cookie.Name, "csrf"),
-		CookieSeed:     opts.Cookie.Secret,
-		CookieDomains:  opts.Cookie.Domains,
-		CookiePath:     opts.Cookie.Path,
-		CookieSecure:   opts.Cookie.Secure,
-		CookieHTTPOnly: opts.Cookie.HTTPOnly,
-		CookieExpire:   opts.Cookie.Expire,
-		CookieRefresh:  opts.Cookie.Refresh,
-		CookieSameSite: opts.Cookie.SameSite,
-		Validator:      validator,
+		CookieName:         opts.Cookie.Name,
+		CSRFCookieName:     fmt.Sprintf("%v_%v", opts.Cookie.Name, "csrf"),
+		CookieSeed:         opts.Cookie.Secret,
+		CookieRotationSeed: opts.Cookie.RotationSecret,
+		CookieDomains:      opts.Cookie.Domains,
+		CookiePath:         opts.Cookie.Path,
+		CookieSecure:       opts.Cookie.Secure,
+		CookieHTTPOnly:     opts.Cookie.HTTPOnly,
+		CookieExpire:       opts.Cookie.Expire,
+		CookieRefresh:      opts.Cookie.Refresh,
+		CookieSameSite:     opts.Cookie.SameSite,
+		Validator:          validator,
 
 		RobotsPath:        "/robots.txt",
 		SignInPath:        fmt.Sprintf("%s/sign_in", opts.ProxyPrefix),

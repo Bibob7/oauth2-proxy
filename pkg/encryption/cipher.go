@@ -66,8 +66,10 @@ func (c *cfbCipher) Encrypt(value []byte) ([]byte, error) {
 		return nil, fmt.Errorf("failed to create initialization vector %s", err)
 	}
 
+	copyValue := make([]byte, len(value))
+	copy(copyValue, value)
 	stream := cipher.NewCFBEncrypter(c.Block, iv)
-	stream.XORKeyStream(ciphertext[aes.BlockSize:], value)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], copyValue)
 	return ciphertext, nil
 }
 
@@ -81,6 +83,10 @@ func (c *cfbCipher) Decrypt(ciphertext []byte) ([]byte, error) {
 	plaintext := make([]byte, len(ciphertext))
 	stream := cipher.NewCFBDecrypter(c.Block, iv)
 	stream.XORKeyStream(plaintext, ciphertext)
+
+	if len(string(plaintext)) != len(string(ciphertext)) {
+		return nil, fmt.Errorf("secret is wrong")
+	}
 
 	return plaintext, nil
 }

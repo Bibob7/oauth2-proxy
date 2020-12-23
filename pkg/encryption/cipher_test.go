@@ -138,6 +138,34 @@ func TestDecryptCFBWrongSecret(t *testing.T) {
 	assert.NotEqual(t, data, wrongData)
 }
 
+func TestDecryptWithFallbackSecret(t *testing.T) {
+	secret1 := []byte("0123456789abcdefghijklmnopqrstuv")
+	secret2 := []byte("9876543210abcdefghijklmnopqrstuv")
+
+	bc, err := NewCFBCipher(secret1)
+	assert.Equal(t, nil, err)
+
+	fb, err := NewCFBCipher(secret2)
+	assert.Equal(t, nil, err)
+	wfb, err := NewWithFallbackCipher(bc, fb)
+
+	data := []byte("f3928pufm982374dj02y485dsl34890u2t9nd4028s94dm58y2394087dhmsyt29h8df")
+
+	ciphertext1, err := bc.Encrypt(data)
+	assert.Equal(t, nil, err)
+
+	ciphertext2, err := fb.Encrypt(data)
+	assert.Equal(t, nil, err)
+
+	decryptedData1, err := wfb.Decrypt(ciphertext1)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, string(data), string(decryptedData1))
+
+	decryptedData2, err := wfb.Decrypt(ciphertext2)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, string(data), string(decryptedData2))
+}
+
 func TestDecryptGCMWrongSecret(t *testing.T) {
 	secret1 := []byte("0123456789abcdefghijklmnopqrstuv")
 	secret2 := []byte("9876543210abcdefghijklmnopqrstuv")

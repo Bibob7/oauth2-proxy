@@ -28,9 +28,10 @@ var _ sessions.SessionStore = &SessionStore{}
 // SessionStore is an implementation of the sessions.SessionStore
 // interface that stores sessions in client side cookies
 type SessionStore struct {
-	Cookie       *options.Cookie
-	CookieCipher encryption.Cipher
-	Minimal      bool
+	Cookie               *options.Cookie
+	CookieCipher         encryption.Cipher
+	FallbackCookieCipher encryption.Cipher
+	Minimal              bool
 }
 
 // Save takes a sessions.SessionState and stores the information from it
@@ -61,6 +62,10 @@ func (s *SessionStore) Load(req *http.Request) (*sessions.SessionState, error) {
 	}
 
 	session, err := sessions.DecodeSessionState(val, s.CookieCipher, true)
+	// if decoding session states fails, try with fallback cipher
+	if err != nil {
+		session, err = sessions.DecodeSessionState(val, s.FallbackCookieCipher, true)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -146,11 +151,16 @@ func NewCookieSessionStore(opts *options.SessionOptions, cookieOpts *options.Coo
 	if err != nil {
 		return nil, fmt.Errorf("error initialising cipher: %v", err)
 	}
+	fallbackCipher, err := encryption.NewCFBCipher(encryption.SecretBytes(cookieOpts.RotationSecret))
+	if err != nil {
+		return nil, fmt.Errorf("error initialising fallback cipher: %v", err)
+	}
 
 	return &SessionStore{
-		CookieCipher: cipher,
-		Cookie:       cookieOpts,
-		Minimal:      opts.Cookie.Minimal,
+		CookieCipher:         cipher,
+		FallbackCookieCipher: fallbackCipher,
+		Cookie:               cookieOpts,
+		Minimal:              opts.Cookie.Minimal,
 	}, nil
 }
 
